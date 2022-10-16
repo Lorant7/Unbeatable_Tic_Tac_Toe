@@ -1,4 +1,5 @@
 //TODO change this logic: it should check if with the surrounding cells of the last placed piece, the player can win
+// (This to improve the implementation)
 
 public class GameLogic {
 

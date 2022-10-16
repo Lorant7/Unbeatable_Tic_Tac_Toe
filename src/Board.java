@@ -132,15 +132,18 @@ public class Board extends Application{
      * @param row: row position on the board for the piece to be plsced
      * @param col: column position on the board for the piece to be placed
      * @param pieceValue: the value of the piece (1 = cross, 2 = circle)
+     * Function returns true if the position can be used, otherwise false
      */
-    public void addPiece(int row, int col, int pieceValue){
+    public boolean addPiece(int row, int col, int pieceValue){
 
         if(row != -1 && col != -1 && board[row][col].getValue() == 0){
             board[row][col] = new BoardSpace(pieceValue, 300 + 200*col, 150 + 200*row);
             everything.getChildren().add(board[row][col].getImage());
-            OpponentLogic.addPiece(row, col);
+            //OpponentLogic.addPiece(row, col);
+            return true;
         }
 
+        return false;
     }
 
     /**
@@ -161,21 +164,21 @@ public class Board extends Application{
             }
 
             // If the position is valid, it adds the user's move the board
-            addPiece(userPosition[0], userPosition[1], 1);
+            if(addPiece(userPosition[0], userPosition[1], 1)) {
 
-            //Checks if the player won
-            if(GameLogic.checkWin(board) != 0) {
-                System.out.println("Player " + GameLogic.checkWin(board) + " won!");
-                return;
+                //Checks if the player won
+                if (GameLogic.checkWin(board) != 0) {
+                    System.out.println("Player " + GameLogic.checkWin(board) + " won!");
+                    return;
+                }
+
+                // Gets the opponent's move
+                int[] opponentPosition = OpponentLogic.getOpponentsMove(userPosition[0], userPosition[1], board);
+                System.out.println("The opponent's position: " + opponentPosition[0] + " " + opponentPosition[1]);
+
+                // Adds the opponent's move to the board
+                addPiece(opponentPosition[0], opponentPosition[1], 2);
             }
-
-            // TODO: if the player chooses a position that is valid, but the space is filled, it still places an opponent piece
-            // Gets the opponent's move
-            int[] opponentPosition = OpponentLogic.getOpponentsMove(userPosition[0], userPosition[1], board);
-            System.out.println("The opponent's position: " + opponentPosition[0] + " " + opponentPosition[1]);
-
-            // Adds the opponent's move to the board
-            addPiece(opponentPosition[0], opponentPosition[1], 2);
 
         }
     }

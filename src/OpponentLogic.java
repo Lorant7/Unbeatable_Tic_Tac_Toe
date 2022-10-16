@@ -1,13 +1,25 @@
 public class OpponentLogic {
 
-    /**
-     * table to keep track of the possible wins:
-     *      0: empty cell
-     *      1: occupied by x
-     *      2: occupied by o
-     *      3: possible win for x
+    // TODO: both indexOfCurrentPiece and strategy must be reset when the game is reset
+    // Static variable used to keep track of the piece
+    private static int indexOfCurrentPiece = 0;
+
+    /*
+        strategy can have three values:
+            0: X starts at a corner
+            1: X starts at a side
+            2: X starts at the center
+            Each value represents the strategy that O (the computer) should follow to win/tie
      */
-    private static int[][] possibleWins = new int[3][3];
+    private static int strategy = -1;
+
+    private static boolean isSide(int row, int col){
+        return ((row == 1 && (col == 0 || col == 2)) || (col == 1 && (row == 0 || row == 2)));
+    }
+
+    private static boolean isCorner(int row, int col){
+        return ((row == 0 && (col == 0 || col ==2)) || (row == 2 && (col == 0 || col == 2)));
+    }
 
     /**
      * getOpponentsMove: main class that will have all the functions for the logic of the opponent's move
@@ -19,41 +31,94 @@ public class OpponentLogic {
      */
     public static int[] getOpponentsMove(int row, int col, BoardSpace[][] board){
 
+        // Check if O needs to cover a win from X, if it does, return the position to cover it
         int [] coordinate = coverOpponentMove(row, col, board);
         if(coordinate[0]!=-1){
+            indexOfCurrentPiece++;
             return coordinate;
         }
 
-        // Finds the first empty slot starting at the top left
-        for(int r=0; r<3; r++){
-            for(int c=0; c<3; c++){
-                System.out.println("Opponent:   row: " + r + ", col: " + c);
-                if(board[r][c].getValue()==0) {
-                    coordinate[0] = r;
-                    coordinate[1] = c;
-                    return coordinate;
+        // Check what strategy is being used, when we are looking at the first piece to place
+        if(indexOfCurrentPiece == 0){
+            // If X0 is at a corner, set strategy to 0
+            if(isCorner(row,col)){
+                strategy = 0;
+            } // If X0 is at the center, set strategy to 2
+            else if(row == 1 && col == 1){
+                strategy = 2;
+            } // Otherwise (X0 is at a side), set strategy to 1
+            else{
+                strategy = 1;
+            }
+        }
+
+
+        // If the X places in a corner, O should place in the center
+        // Then avoid falling into a symmetry trap
+        if(strategy == 0){
+
+            switch(indexOfCurrentPiece){
+                case 0:     // the first piece placed should be in the middle
+                    coordinate[0] = 1;
+                    coordinate[1] = 1;
+                    break;
+                case 1:     // second case should place a piece in between X1 and X2
+                    // If the first two moves are opposite corner, place a piece on any side
+                    if((row == 0 && col == 0 && board[2][2].getValue() == 1)
+                            || (row == 0 && col == 2 && board[2][0].getValue() == 1)
+                            || (row == 2 && col == 0 && board[0][2].getValue() == 1)
+                            || (row == 2 && col == 2 && board[0][0].getValue() == 1)){
+                        coordinate[0] = 1;
+                        coordinate[1] = 0;
+                        break;
+                    }
+                    //TODO: TELL IT WHAT TO DO WHEN X PLACES A PIECE ON THE SIDE ON THE SECOND MOVE
+                    break;
+            }
+        }// If the X places at a side, O should place at the center
+        // After that, you should try to block wins by placing O in between X1 & X2
+        else if(strategy == 1){
+            switch(indexOfCurrentPiece){
+                case 0:
+                    coordinate[0] = 1;
+                    coordinate[1] = 1;
+                    break;
+                case 1:
+                    //TODO: FINISH THIS STRATEGY
+            }
+        }// If the X starts at the center, O should start at a corner
+         //      if X places x2 at the opposite corner, O should take another corner
+        else{
+            if(indexOfCurrentPiece == 0){
+                coordinate[0] = 0;
+                coordinate[1] = 0;
+            }
+        }
+
+        if(coordinate[0] == -1) {
+            // Finds the first empty slot starting at the top left
+            for (int r = 0; r < 3; r++) {
+                for (int c = 0; c < 3; c++) {
+                    System.out.println("Opponent:   row: " + r + ", col: " + c);
+                    if (board[r][c].getValue() == 0) {
+                        coordinate[0] = r;
+                        coordinate[1] = c;
+                        indexOfCurrentPiece++;
+                        return coordinate;
+                    }
                 }
             }
         }
+        indexOfCurrentPiece++;
         return coordinate;
     }
 
     /**
-     *  THIS IS USELESS AT THE TIME
-     * addPiece: used to add the piece that the player placed on the board to the possible win board
-     * @param r: row
-     * @param c: column
-     */
-    public static void addPiece(int r,  int c){
-        possibleWins[r][c] = 1;
-    }
-
-    /**
-     * coverOpponentMove: this function returns the position the computer should input prevent the player from winning
+     * coverOpponentMove: this function returns the position the computer should input to prevent the player from winning
      * @param row: row that the user placed the piece
      * @param col: column that the user placed the piece
      * @param board: board from Board file to check what places are empty
-     * @return int[]: the row and column in the format of an array: [row, column]
+     * @return int[]: the row and column in the format of an array: [row, column] (return [-1,-1] if there is no play to cover)
      */
     public static int[] coverOpponentMove(int row, int col, BoardSpace[][] board){
         // the position is the position that the opponent will place its piece
@@ -241,5 +306,10 @@ public class OpponentLogic {
     }
 
     //TODO: make a function that will anticipate the player's move
+    public static int[] strategicMove(int row, int col, BoardSpace[][] board){
+        int[] pos = {-1,-1};
+        //
+        return pos;
+    }
 
 }
